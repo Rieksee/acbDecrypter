@@ -98,6 +98,8 @@ class Decrypt(object):
         count = 0
         newFileNames = []
         filenames = self.get_filename(path)
+        if len(filenames) == 0 and self.is_awb_file(path):
+            filenames = self.get_filename(os.path.splitext(path)[0] + ".acb")
         allcount = len(wavFileNames)
         count = 0
         if len(filenames) == allcount:
@@ -242,3 +244,6 @@ class Decrypt(object):
                 return c.isdecimal()
             except:
                 return False
+
+    def is_awb_file(self, path):
+        return os.path.splitext(os.path.basename(path))[1] == ".awb"
