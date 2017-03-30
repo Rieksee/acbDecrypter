@@ -77,7 +77,7 @@ class window_main(QWidget):
         Decrypt(self.path, self.key, self.folder)
 
     def select_file_path(self):
-        path = QFileDialog.getOpenFileNames(self, "ファイルを選択", None, "ACBファイル(*.acb *.acb.txt);;AWBファイル(*.awb)")[0]
+        path = QFileDialog.getOpenFileNames(self, "ファイルを選択", None, "ACBファイル(*.acb *.acb.txt);;AWBファイル(*.awb);;すべてのファイル(*.*)")[0]
         retval = []
         for file in path:
             retval.append(file.replace("/", "\\"))
