@@ -99,13 +99,15 @@ class window_main(QWidget):
         return ret
 
     def isEncrypted(self):
-        offset = 0
+        offset = None
         data = self.open_hca()
         for no, bt in enumerate(data):
             if bt == 99 or bt == 227:
                 if self.byte_chk(bt, no, data):
                     offset = no
                     break
+        if offset is None:
+            return False
         if data[offset + 5] == 1 or data[offset + 5] == 0:
             return False
         else:
