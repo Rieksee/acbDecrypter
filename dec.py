@@ -13,6 +13,20 @@ class Decrypt(object):
         self.window_progress.show()
         self.thisFileDir = self.get_path()
         self.key = key
+
+        self.hcasDir = ""
+        self.adxKey = None
+
+        self.afs2Dir = self.thisFileDir + '\\acbToHca'
+        self.afs2ExePath = self.afs2Dir + '\\afs2.exe'
+        self.afs2ExeCutHeadPath = self.afs2Dir + '\\先頭をカットして展開.bat'
+        self.hcaDecodeDir = self.thisFileDir + '\\hcaToWav'
+        self.hcaDecryptPath = self.hcaDecodeDir + '\\復号化.bat'
+        self.hcaDecodeExePath = self.hcaDecodeDir + '\\hca.exe'
+        self.adxDecryptDir = self.thisFileDir + '\\adxToWav'
+        self.adxDecryptPath = self.adxDecryptDir + '\\復号鍵指定デコード.bat'
+        # self.adxDecryptKeyList = self.adxDecryptDir + '\\復号鍵リスト.txt'
+
         print("鍵に " + key + " を使用")
         self.separator = '_'
         self.passPathList = []
@@ -33,7 +47,7 @@ class Decrypt(object):
                     self.marge_files(self.search_marge_target(path))
                 if folderPath is not None:
                     relative = path[len(self.folderPath):]
-                    prefix = os.path.dirname(relative).replace("/", self.separator) + os.path.basename(relative)
+                    prefix = os.path.dirname(relative).replace("/", self.separator) + self.separator + os.path.basename(relative)
                     if len(prefix) > 0:
                         prefix = prefix + self.separator
                     self.decrypt(path, self.saveFolderPath, prefix)
@@ -41,6 +55,7 @@ class Decrypt(object):
                     self.decrypt(path)
             count = count + 1
             self.window_progress.setval(0, ceil(count / self.filesAllcount * 100))
+            # print(path)
             print(str(count) + '/' + str(self.filesAllcount) + 'ファイル完了')
             print('-' * 20)
         self.window_progress.close()
@@ -57,79 +72,42 @@ class Decrypt(object):
         else:
             resultDir = savePath
         self.command(['mkdir', resultDir])
-        afs2Dir = self.thisFileDir + '\\acbToHca'
-        afs2ExePath = afs2Dir + '\\afs2.exe'
-        afs2ExeCutHeadPath = afs2Dir + '\\先頭をカットして展開.bat'
-        hcaDecodeDir = self.thisFileDir + '\\hcaToWav'
-        hcaDecryptPath = hcaDecodeDir + '\\復号化.bat'
-        hcaDecodeExePath = hcaDecodeDir + '\\hca.exe'
-        with open(path , 'rb') as f:
-            if b'AFS2' == f.read(4):
-                cmd = [afs2ExePath, path]
-            else:
-                cmd = [afs2ExeCutHeadPath, path]
-        self.command(cmd)
-        folderName = os.path.splitext(os.path.basename(path))[0]
-        hcasDir = afs2Dir + '\\' + folderName
-        try:
-            files = os.listdir(hcasDir)
-        except Exception as e:
-            self.error(str(e))
-            self.errorFiles.append(path)
-            print("このファイルはスキップします。")
-            self.window_progress.setval(1, 100)
-            return
-        files_file = [os.path.join(hcasDir, f) for f in files if os.path.isfile(os.path.join(hcasDir, f))]
-        allcount = len(files_file)
-        count = 0
-        for file in files_file:
-            self.command([hcaDecryptPath, self.key, file])
-            count = count + 1
-            if count % self.fileProgressShowCount == 0:
-                self.window_progress.setval(1, 0 + ceil(count / allcount * 25))
-        count = 0
-        allcount = len(files_file)
-        for file in files_file:
-            self.command([hcaDecodeExePath, file])
-            count = count + 1
-            if count % self.fileProgressShowCount == 0:
-                self.window_progress.setval(1, 25 + ceil(count / allcount * 25))
-        wavFileNames = [os.path.splitext(file)[0] + '.wav' for file in files_file]
-        count = 0
-        newFileNames = []
-        filenames = self.get_filename(path)
-        if len(filenames) == 0 and self.is_awb_file(path):
-            filenames = self.get_filename(os.path.splitext(path)[0] + ".acb")
-        allcount = len(wavFileNames)
-        count = 0
-        if len(filenames) == allcount:
-            for file in wavFileNames:
-                new = os.path.join(hcasDir, filenames[count].decode('utf-8') + '.wav')
-                newFileNames.append(new)
-                self.command(['move', file, new])
-                count = count + 1
-                if count % self.fileProgressShowCount == 0:
-                    self.window_progress.setval(1, 50 + ceil(count / allcount * 25))
+        
+        if self.is_adx(path):
+            if self.adxKey is None:
+                print('ADXファイルが見つかりました。鍵を入力してください。')
+                self.adxKey = input('>>')
+                if self.adxKey == "":
+                    print('鍵なし')
+                else:
+                    print('鍵に' + self.adxKey + 'を使用')
+            tmpPath = self.acb_to_adx(path)
+            if tmpPath == "":
+                self.error()
+                self.errorFiles.append(path)
+                self.command(['rd', '/s', '/q', os.path.dirname(tmpPath)])
+                self.window_progress.setval(1, 100)
+            self.window_progress.setval(1, 40)
+            res = self.decode_adx(tmpPath)
+            self.window_progress.setval(1, 80)
+            if not res:
+                self.error()
+                self.errorFiles.append(path)
+                self.command(['rd', '/s', '/q', os.path.dirname(tmpPath)])
+                self.window_progress.setval(1, 100)
+                return
+            self.move_wav_file([res], resultDir, saveFileNamePrefix)
+            self.command(['rd', '/s', '/q', os.path.dirname(tmpPath)])
         else:
-            newFileNames = wavFileNames
-            print('wavファイル名候補数と実際のファイル数が異なっています。リネームを取りやめます。')
-            self.window_progress.setval(1, 75)
-        count = 0
-        allcount = len(newFileNames)
-        for fileName in newFileNames:
-            baseName = os.path.basename(fileName)
-            newname = resultDir + '/' + saveFileNamePrefix + baseName
-            if os.path.isfile(newname):
-                # print("ファイル名が重複しています。")
-                # print(newname + "を")
-                newname = self.rename(newname)
-                # print(newname + "にリネームして保存します。")
-            self.command(['move', fileName, newname])
-            count = count + 1
-            if count % self.fileProgressShowCount == 0:
-                self.window_progress.setval(1, 75 + ceil(count / allcount * 25))
+            self.explode_acb(path)
+            files_file = self.get_hca_files(path)
+            self.hca_decrypt(files_file)
+            self.hca_decode(files_file)
+            newFileNames = self.rename_wav_file(path, files_file)
+            self.move_wav_file(newFileNames, resultDir, saveFileNamePrefix)
+            self.command(['rd', '/s', '/q', self.hcasDir])
+
         self.window_progress.setval(1, 100)
-        self.command(['rd', '/s', '/q', hcasDir])
         if self.folderPath == "":
             os.system('explorer ' + resultDir)
 
@@ -158,14 +136,13 @@ class Decrypt(object):
             while True:
                 f.seek(offset)
                 data = f.read(readLen)
-                findAt = data.find(searchStr.encode('ascii'))
+                findAt = data.find(searchStr.encode('utf-8'))
                 if findAt != -1:
                     dataoffset = findAt + offset
                     count = count - 1
                     if count <= 0:
                         break
                 if offset + readLen > filesize:
-                    print("\nfailed the get file name")
                     dataoffset = None
                     break
                 offset = offset + readLen + back
@@ -183,7 +160,28 @@ class Decrypt(object):
         with open(filename, 'rb') as f:
             f.seek(offset)
             stri = f.read(end - offset)
-            return stri.split('\x00'.encode('ascii'))
+            names = stri.split('\x00'.encode('ascii'))
+        ret = []
+        for name in names:
+            ret.append(name.decode('utf-8'))
+        return ret
+
+    def chk_file_type(self, file):
+        # types:
+        #     1 hca
+        #     2 adx
+        copylight = '(c)CRI'
+        offset = self.findStr(file, copylight, 0, -len(copylight), 1)
+        if offset is None:
+            return 1
+        else:
+            return 2
+
+    def is_adx(self, file):
+        if self.chk_file_type(file) == 2:
+            return True
+        else:
+            return False
 
     def error(self, e=None):
         print("エラーが発生しました。")
@@ -200,8 +198,8 @@ class Decrypt(object):
     def search_marge_target(self, path):
         if path.endswith('.acb'):
             ext = '.acb'
-        elif path.endswith('.acb.txt'):
-            ext = '.acb.txt'
+        elif path.endswith('acb.txt'):
+            ext = 'acb.txt'
         else:
             return []
         spl = path.split('-')
@@ -245,5 +243,135 @@ class Decrypt(object):
             except:
                 return False
 
-    def is_awb_file(self, path):
-        return os.path.splitext(os.path.basename(path))[1] == ".awb"
+    def awb_file(self, path):
+        if os.path.splitext(os.path.basename(path))[1].lower() == ".awb":
+            return 1
+        elif os.path.basename(path).lower().endswith("awb.txt"):
+            return 2
+        else:
+            return 0
+
+    def hca_decrypt(self, fileList):
+        allcount = len(fileList)
+        count = 0
+        for file in fileList:
+            self.command([self.hcaDecryptPath, self.key, file])
+            count = count + 1
+            if count % self.fileProgressShowCount == 0:
+                self.window_progress.setval(1, 0 + ceil(count / allcount * 25))
+
+    def hca_decode(self, fileList):
+        count = 0
+        allcount = len(fileList)
+        for file in fileList:
+            self.command([self.hcaDecodeExePath, file])
+            count = count + 1
+            if count % self.fileProgressShowCount == 0:
+                self.window_progress.setval(1, 25 + ceil(count / allcount * 25))
+
+    def can_get_wav_file_name(self, nameLists):
+        wavFileNames = nameLists[0]
+        filenames = nameLists[1]
+        if len(wavFileNames) > len(filenames):
+            return False
+        else:
+            return True
+
+    def get_wav_file_names(self, path, fileList):
+        # 連番の名前
+        wavFileNames = [os.path.splitext(file)[0] + '.wav' for file in fileList]
+
+        # acbファイルに格納されている元の名前
+        filenames = self.get_filename(path)
+
+        # 調査したのがawbファイルで元ファイル名が見つからない場合acbファイルも調査する
+        if len(filenames) == 0 and self.awb_file(path) != 0:
+            if self.awb_file(path) == 1:
+                filenames = self.get_filename(os.path.splitext(path)[0] + ".acb")
+            elif self.awb_file(path) == 2:
+                acbpath = path[:len(path) - len('awb.txt')] + 'acb.txt'
+                filenames = self.get_filename(acbpath)
+
+        return [wavFileNames, filenames]
+
+    def rename_wav_file(self, path, files_file):
+        filenames = self.get_wav_file_names(path, files_file)
+        if self.can_get_wav_file_name(filenames):
+            newFileNames = filenames[1]
+            allcount = len(newFileNames)
+            count = 0
+            for file in filenames[0]:
+                new = os.path.join(self.hcasDir, newFileNames[count] + '.wav')
+                newFileNames.append(new)
+                self.command(['move', file, new])
+                count = count + 1
+                if count % self.fileProgressShowCount == 0:
+                    self.window_progress.setval(1, 50 + ceil(count / allcount * 25))
+        else:
+            newFileNames = filenames[0]
+            print('wavファイル名候補数と実際のファイル数が異なっています。リネームを取りやめます。')
+            self.window_progress.setval(1, 75)
+        return newFileNames
+
+    def move_wav_file(self, newFileNames, resultDir, saveFileNamePrefix):
+        count = 0
+        allcount = len(newFileNames)
+        for fileName in newFileNames:
+            baseName = os.path.basename(fileName)
+            newname = resultDir + '/' + saveFileNamePrefix + baseName
+            if os.path.isfile(newname):
+                newname = self.rename(newname)
+            self.command(['move', fileName, newname])
+            count = count + 1
+            if count % self.fileProgressShowCount == 0:
+                self.window_progress.setval(1, 75 + ceil(count / allcount * 25))
+
+    def get_hca_files(self, path):
+        folderName = os.path.splitext(os.path.basename(path))[0]
+        self.hcasDir = self.afs2Dir + '\\' + folderName
+        try:
+            files = os.listdir(self.hcasDir)
+        except Exception as e:
+            self.error(str(e))
+            self.errorFiles.append(path)
+            print("このファイルはスキップします。")
+            self.window_progress.setval(1, 100)
+            return []
+        files_file_extnotchecked = [os.path.join(self.hcasDir, f) for f in files if os.path.isfile(os.path.join(self.hcasDir, f))]
+        files_file = []
+        for file in files_file_extnotchecked:
+            if os.path.splitext(file)[1] in [".hca"]:
+                files_file.append(file)
+        return files_file
+
+    def explode_acb(self, path):
+        with open(path , 'rb') as f:
+            if b'AFS2' == f.read(4):
+                cmd = [self.afs2ExePath, path]
+            else:
+                cmd = [self.afs2ExeCutHeadPath, path]
+        self.command(cmd)
+
+    def decode_adx(self, path):
+        com = [self.adxDecryptPath, path, self.adxKey]
+        self.command(com)
+        filename = os.path.splitext(path)[0] + '.wav'
+        if os.path.isfile(filename):
+            return filename
+        else:
+            return False
+
+    def acb_to_adx(self, path):
+        offset = self.findStr(path, 'AFS2', 0, -4, 1)
+        offset = self.findStr(path, '\x80\x00', offset, -2, 1)
+        if offset is None:
+            return ''
+        tmpDir = self.get_path() + '\\tmp'
+        self.command(['mkdir', tmpDir])
+        with open(path, 'rb') as f:
+            f.seek(offset)
+            data = f.read()
+        tmpPath = tmpDir + '\\' + os.path.basename(path)
+        with open(tmpPath, 'wb') as f:
+            f.write(data)
+        return tmpPath
