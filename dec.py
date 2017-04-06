@@ -87,6 +87,7 @@ class Decrypt(object):
                 self.errorFiles.append(path)
                 self.command(['rd', '/s', '/q', os.path.dirname(tmpPath)])
                 self.window_progress.setval(1, 100)
+                return
             self.window_progress.setval(1, 40)
             res = self.decode_adx(tmpPath)
             self.window_progress.setval(1, 80)
