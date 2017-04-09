@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
 import sys
 import os
-from PyQt5.QtWidgets import QApplication
-from window_main import window_main
+from preWorksForDecrypt import pre_works_for_decrypt
 
 def get_path():
     if getattr(sys, 'frozen', False):
@@ -12,15 +11,8 @@ def get_path():
         # unfrozen
         return os.path.dirname(os.path.realpath(__file__))
 
-keyFile = get_path() + "\\hcaToWav\\復号鍵リスト.txt"
-
 def main(path, folder):
-    arg = []
-    arg.append(sys.argv[0])
-    app = QApplication(arg)
-    main_ui = window_main(path, keyFile, folder)
-    main_ui.show()
-    return app.exec_()
+    pre_works_for_decrypt(path, folder)
 
 
 if __name__ == '__main__':

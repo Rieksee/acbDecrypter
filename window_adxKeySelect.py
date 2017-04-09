@@ -4,16 +4,16 @@ import sys
 from ui_main import Ui_Form
 from PyQt5.QtWidgets import *
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QApplication
 from subprocess import DEVNULL, STDOUT, check_call
+from PyQt5.QtWidgets import QApplication
 
-class window_main(QWidget):
-    def __init__(self, keyFile=None, parent=None, isolate=True):
+class window_adxKeySelect(QWidget):
+    def __init__(self, keyFile, parent=None, isolate=True):
         if not isolate:
-            super(window_main, self).__init__(parent)
+            super(window_adxKeySelect, self).__init__(parent)
         else:
-            super(window_main, self).__init__(None)
-        self.key_default = "CF222F1FE0748978"
+            super(window_adxKeySelect, self).__init__(None)
+        self.key_default = "000000000000"
         self.ui = Ui_Form()
         self.keys = []
         self.note = None
@@ -21,6 +21,7 @@ class window_main(QWidget):
         self.isProcessing = True
         self.keyFile = keyFile
         self.ui.setupUi(self)
+        self.setWindowTitle("ADX用鍵を選択")
         self.read_file(self.keyFile)
 
     def key_selected(self, index):
@@ -28,8 +29,6 @@ class window_main(QWidget):
         self.note = self.keys[self.selectedRow]
 
     def read_file(self, file):
-        if file is None:
-            return
         with open(file, 'r') as f:
             for line in f:
                 lis = line.split(' : ')
@@ -57,24 +56,17 @@ class window_main(QWidget):
         QApplication.quit()
 
     def not_use_key(self):
-        self.key = self.key_default
+        self.key = ""
         self.close()
         QApplication.quit()
-    
-    def get_key(self):
-        return self.key
 
-    def select_file_path(self):
-        path = QFileDialog.getOpenFileNames(self, "ファイルを選択", None, "ACB,AWBファイル(*.acb *acb.txt *.awb *awb.txt);;すべてのファイル(*.*)")[0]
-        retval = []
-        for file in path:
-            retval.append(file.replace("/", "\\"))
-        return retval
-
-    def select_dir_path(self):
-        path = QFileDialog.getExistingDirectory(self, "フォルダを選択")
-        path = path.replace("/", "\\")
-        return path
+    def get_path(self):
+        if getattr(sys, 'frozen', False):
+            # frozen
+            return os.path.dirname(sys.executable)
+        else:
+            # unfrozen
+            return os.path.dirname(os.path.realpath(__file__))
 
     def command(self, attr):
         try:
@@ -82,3 +74,6 @@ class window_main(QWidget):
             return True
         except:
             return False
+
+    def get_key(self):
+        return self.key

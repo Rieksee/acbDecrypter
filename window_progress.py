@@ -2,6 +2,7 @@
 import sys
 from ui_progress import Ui_Progress
 from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QApplication
 
 class window_progress(QWidget):
     def __init__(self, parent=None, isolate=True):
@@ -26,3 +27,18 @@ class window_progress(QWidget):
             return False
         QApplication.processEvents()
         return True
+
+    def finish(self):
+        QApplication.quit()
+
+    def select_file_path(self):
+        path = QFileDialog.getOpenFileNames(self, "ファイルを選択", None, "ACB,AWBファイル(*.acb *acb.txt *.awb *awb.txt);;すべてのファイル(*.*)")[0]
+        retval = []
+        for file in path:
+            retval.append(file.replace("/", "\\"))
+        return retval
+
+    def select_dir_path(self):
+        path = QFileDialog.getExistingDirectory(self, "フォルダを選択")
+        path = path.replace("/", "\\")
+        return path
