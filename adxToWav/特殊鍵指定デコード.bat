@@ -4,5 +4,5 @@ if "%~2" == "" (
  exit /b
 )
 set X_K=%~2
-set X=-b %X_K%
+set X=-a %X_K%
 "%~dp0adx.exe" %X% %~1
