@@ -21,6 +21,7 @@ class window_main(QWidget):
         self.isProcessing = True
         self.keyFile = keyFile
         self.ui.setupUi(self)
+        self.setWindowTitle("HCA用鍵を選択")
         self.read_file(self.keyFile)
 
     def key_selected(self, index):

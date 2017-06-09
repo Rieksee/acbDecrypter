@@ -6,11 +6,11 @@ from math import ceil
 from window_adxKeySelect import window_adxKeySelect
 from subprocess import DEVNULL, STDOUT, check_call
 from PyQt5.QtWidgets import QApplication
+from PyQt5 import QtCore
 from hcaDecrypt import hca_decrypt
 from adxDecrypt import adx_decrypt
-from threading import Thread
 
-class Decrypt(object):
+class Decrypt(QtCore.QThread):
     """docstring for Decrypt"""
     def __init__(self, app, progress, pathList, folderPath=None):
         super(Decrypt, self).__init__()
@@ -55,6 +55,7 @@ class Decrypt(object):
         print('全て完了しました。')
         if self.folderPath != "":
             os.system('explorer ' + self.saveFolderPath)
+        self.finished.emit()
 
     def decrypt(self, path, savePath='', saveFileNamePrefix=''):
         # self.window_progress.setval(1, 0)
