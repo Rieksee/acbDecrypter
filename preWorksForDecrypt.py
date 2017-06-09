@@ -35,8 +35,9 @@ class pre_works_for_decrypt(object):
             self.key = self.key_default
             sys.exit()
         self.window_progress.show()
-        Decrypt(app, self.window_progress, self.path, self.folder)
-        # app.exec_()
+        self.decrypt = Decrypt(app, self.window_progress, self.path, self.folder)
+        sys.exit()
+        # sys.exit(app.exec_())
 
     def isEncrypted(self):
         offset = None
@@ -112,3 +113,6 @@ class pre_works_for_decrypt(object):
             return True
         except:
             return False
+
+    def finish_decrypt(self):
+        sys.exit()
