@@ -29,7 +29,7 @@ class window_adxKeySelect(QWidget):
         self.note = self.keys[self.selectedRow]
 
     def read_file(self, file):
-        with open(file, 'r') as f:
+        with open(file, 'r', encoding='shift_jis') as f:
             for line in f:
                 lis = line.split(' : ')
                 if len(lis) != 2:

@@ -1,0 +1,5 @@
+cx-Freeze==6.3
+importlib-metadata==2.0.0
+PyQt5==5.15.1
+PyQt5-sip==12.8.1
+zipp==3.4.0

@@ -31,7 +31,7 @@ class window_main(QWidget):
     def read_file(self, file):
         if file is None:
             return
-        with open(file, 'r') as f:
+        with open(file, 'r', encoding='shift_jis') as f:
             for line in f:
                 lis = line.split(' : ')
                 if len(lis) != 2:
