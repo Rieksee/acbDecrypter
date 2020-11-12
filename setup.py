@@ -19,7 +19,7 @@ excludes = ['unittest', 'email', 'urllib', 'xml', 'logging', 'http', 'html']
 
 # セットアップ
 setup(name = 'acbDecrypter',
-    version = '0.1.1',
+    version = '0.2.2',
     options = {'build_exe': {'excludes':excludes}},
     description = 'test',
     executables = [exe])
