@@ -2,7 +2,7 @@
 import os
 import sys
 from ui.ui_main import Ui_Form
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QWidget
 from PyQt5 import QtGui, QtCore
 from subprocess import DEVNULL, STDOUT, check_call
 from PyQt5.QtWidgets import QApplication

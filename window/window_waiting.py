@@ -3,8 +3,7 @@ import os
 import sys
 from ui.ui_waiting import Ui_Dialog
 from subprocess import DEVNULL, STDOUT, check_call
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 
 class window_waiting(QWidget):
     def __init__(self, parent=None, isolate=True):

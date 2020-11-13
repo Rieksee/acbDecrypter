@@ -2,7 +2,7 @@
 import time
 import os
 import sys
-from dec import Decrypt
+from service.dec import Decrypt
 from window.window_main import window_main
 from window.window_progress import window_progress
 from subprocess import DEVNULL, STDOUT, check_call
