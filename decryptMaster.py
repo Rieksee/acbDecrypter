@@ -2,7 +2,7 @@
 import os
 import sys
 from subprocess import DEVNULL, STDOUT, check_call
-from window_main import window_main
+from window.window_main import window_main
 from math import ceil
 
 class DecryptMaster(object):

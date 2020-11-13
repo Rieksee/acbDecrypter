@@ -3,8 +3,8 @@ import time
 import os
 import sys
 from dec import Decrypt
-from window_main import window_main
-from window_progress import window_progress
+from window.window_main import window_main
+from window.window_progress import window_progress
 from subprocess import DEVNULL, STDOUT, check_call
 from PyQt5.QtWidgets import QApplication
 

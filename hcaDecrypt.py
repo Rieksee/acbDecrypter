@@ -2,7 +2,7 @@
 import sys
 import os
 import time
-from window_main import window_main
+from window.window_main import window_main
 from decryptMaster import DecryptMaster
 from math import ceil
 from PyQt5.QtWidgets import QApplication

@@ -5,7 +5,7 @@ import sys
 import time
 from math import ceil
 from decryptMaster import DecryptMaster
-from window_adxKeySelect import window_adxKeySelect
+from window.window_adxKeySelect import window_adxKeySelect
 from PyQt5.QtWidgets import QApplication
 
 class adx_decrypt(DecryptMaster):

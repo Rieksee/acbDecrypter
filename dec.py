@@ -3,7 +3,7 @@ import sys
 import os
 import time
 from math import ceil
-from window_adxKeySelect import window_adxKeySelect
+from window.window_adxKeySelect import window_adxKeySelect
 from subprocess import DEVNULL, STDOUT, check_call
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
