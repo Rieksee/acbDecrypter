@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from ui.ui_progress import Ui_Progress
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog
 
 class window_progress(QWidget):
     def __init__(self, parent=None, isolate=True):
