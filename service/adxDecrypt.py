@@ -7,6 +7,7 @@ from math import ceil
 from service.decryptMaster import DecryptMaster
 from window.window_adxKeySelect import window_adxKeySelect
 from PyQt5.QtWidgets import QApplication
+from typing import List, Union, Tuple, Dict
 
 class adx_decrypt(DecryptMaster):
     """docstring for adx_decrypt"""
@@ -16,7 +17,7 @@ class adx_decrypt(DecryptMaster):
         self.keyFile = self.adxSpecialKeyList
         self.window_selectKey = window_adxKeySelect
         
-    def decrypt(self, app, path):
+    def decrypt(self, app: QApplication, path: str) -> List[str]:
         self.set_progress(0)
         if self.key is None:
             self.key = self.select_key(app, 'ADX')
@@ -35,7 +36,7 @@ class adx_decrypt(DecryptMaster):
             return []
         return self.rename_wav_file(path, [res])
 
-    def decode_adx(self, app, path):
+    def decode_adx(self, app: QApplication, path: str) -> Union[str, bool]:
         com = [self.adxSpecialDecryptPath, path, self.key]
         self.command(com)
         filename = os.path.splitext(path)[0] + '.wav'
@@ -44,7 +45,7 @@ class adx_decrypt(DecryptMaster):
         else:
             return False
 
-    def acb_to_adx(self, path):
+    def acb_to_adx(self, path: str) -> str:
         offset = self.findStr(path, 'AFS2', 0, -4, 1)
         offset = self.findByte(path, b'\x80\x00', offset, -2, 1)
         if offset is None:
@@ -59,16 +60,16 @@ class adx_decrypt(DecryptMaster):
             f.write(data)
         return tmpPath
 
-    def get_wav_file_names(self, path, fileList):
+    def get_wav_file_names(self, path: str, fileList: List[str]) -> Tuple[List[str], Dict[int, str]]:
         # 連番の名前
         wavFileNames = [os.path.splitext(file)[0] + '.wav' for file in fileList]
 
         # acbファイルに格納されている元の名前
         filenames = self.get_filename(path)
 
-        return [wavFileNames, filenames]
+        return (wavFileNames, filenames)
 
-    def get_path(self):
+    def get_path(self) -> str:
         if getattr(sys, 'frozen', False):
             # frozen
             return os.path.dirname(sys.executable)

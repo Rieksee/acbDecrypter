@@ -4,6 +4,7 @@ import sys
 from ui.ui_waiting import Ui_Dialog
 from subprocess import DEVNULL, STDOUT, check_call
 from PyQt5.QtWidgets import QApplication, QWidget
+from typing import List
 
 class window_waiting(QWidget):
     def __init__(self, parent=None, isolate=True):
@@ -14,7 +15,7 @@ class window_waiting(QWidget):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-    def command(self, attr):
+    def command(self, attr: List[str]) -> bool:
         try:
             check_call(attr, shell=True, stdout=DEVNULL, stderr=STDOUT)
             self.close()
@@ -26,6 +27,6 @@ class window_waiting(QWidget):
             QApplication.quit()
             return False
 
-    def error(self, e=None):
+    def error(self, e: Exception=None):
         if e is not None:
             print("Error: " + str(e))

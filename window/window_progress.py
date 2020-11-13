@@ -15,7 +15,7 @@ class window_progress(QWidget):
     def cancel(self):
         sys.exit()
 
-    def setval(self, barNo, val):
+    def setval(self, barNo: int, val: int):
         if type(val) != int:
             return False
         if barNo == 0:

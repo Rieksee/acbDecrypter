@@ -3,18 +3,19 @@ import os
 import sys
 from ui.ui_main import Ui_Form
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog
 from subprocess import DEVNULL, STDOUT, check_call
+from typing import List, Tuple, Optional
 
 class window_main(QWidget):
-    def __init__(self, keyFile=None, parent=None, isolate=True):
+    def __init__(self, keyFile: str=None, parent=None, isolate=True):
         if not isolate:
             super(window_main, self).__init__(parent)
         else:
             super(window_main, self).__init__(None)
         self.key_default = "CF222F1FE0748978"
         self.ui = Ui_Form()
-        self.keys = []
+        self.keys: List[Tuple[str, str]] = []
         self.note = None
         self.key = None
         self.isProcessing = True
@@ -27,7 +28,7 @@ class window_main(QWidget):
         self.selectedRow = index.row()
         self.note = self.keys[self.selectedRow]
 
-    def read_file(self, file):
+    def read_file(self, file: Optional[str]):
         if file is None:
             return
         with open(file, 'r', encoding='shift_jis') as f:
@@ -61,22 +62,22 @@ class window_main(QWidget):
         self.close()
         QApplication.quit()
     
-    def get_key(self):
+    def get_key(self) -> Optional[str]:
         return self.key
 
-    def select_file_path(self):
+    def select_file_path(self) -> List[str]:
         path = QFileDialog.getOpenFileNames(self, "ファイルを選択", None, "ACB,AWBファイル(*.acb *acb.txt *.awb *awb.txt);;すべてのファイル(*.*)")[0]
         retval = []
         for file in path:
             retval.append(file.replace("/", "\\"))
         return retval
 
-    def select_dir_path(self):
+    def select_dir_path(self) -> str:
         path = QFileDialog.getExistingDirectory(self, "フォルダを選択")
         path = path.replace("/", "\\")
         return path
 
-    def command(self, attr):
+    def command(self, attr: List[str]) -> bool:
         try:
             check_call(attr, shell=True, stdout=DEVNULL, stderr=STDOUT)
             return True

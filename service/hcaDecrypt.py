@@ -6,6 +6,7 @@ from window.window_main import window_main
 from service.decryptMaster import DecryptMaster
 from math import ceil
 from PyQt5.QtWidgets import QApplication
+from typing import List
 
 class hca_decrypt(DecryptMaster):
     """docstring for hca_decrypt"""
@@ -14,7 +15,7 @@ class hca_decrypt(DecryptMaster):
         self.window_selectKey = window_main
         self.keyFile = self.hcaKeyFile
 
-    def decrypt(self, app, path):
+    def decrypt(self, app: QApplication, path: str) -> List[str]:
         self.set_progress(0)
         if self.key is None:
             self.key = self.select_key(app, 'HCA')

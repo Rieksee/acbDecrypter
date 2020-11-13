@@ -5,12 +5,13 @@ from subprocess import DEVNULL, STDOUT, check_call
 from PyQt5.QtWidgets import QApplication
 from window.window_progress import window_progress
 from service.dec import Decrypt
+from typing import List
 
 class AcbDecrypter(object):
     """
     docstring
     """
-    def main(self, path, folder):
+    def main(self, path: List[str], folder: bool) -> None:
         app = QApplication([sys.argv[0]])
         self.window_progress = window_progress()
         if folder:
@@ -29,7 +30,6 @@ class AcbDecrypter(object):
             sys.exit()
         self.key_default = "CF222F1FE0748978"
         self.custumFolder = folder
-        self.keys = []
         self.note = None
         self.key = None
         if not self.isEncrypted():
@@ -40,7 +40,7 @@ class AcbDecrypter(object):
         sys.exit()
         # sys.exit(app.exec_())
 
-    def get_path(self):
+    def get_path(self) -> str:
         if getattr(sys, 'frozen', False):
             # frozen
             return os.path.dirname(sys.executable)
@@ -48,7 +48,7 @@ class AcbDecrypter(object):
             # unfrozen
             return os.path.dirname(os.path.realpath(__file__))
 
-    def isEncrypted(self):
+    def isEncrypted(self) -> bool:
         offset = None
         data = self.open_hca()
         for no, bt in enumerate(data):
@@ -84,7 +84,7 @@ class AcbDecrypter(object):
         self.command(['rd', '/s', '/q', hcasDir])
         return data
 
-    def byte_chk(self, ty, index, data):
+    def byte_chk(self, ty: int, index: int, data) -> bool:
         if ty == 99:
             chk = [105, 112, 104]
         elif ty == 227:
@@ -98,7 +98,7 @@ class AcbDecrypter(object):
                 return False
         return True
 
-    def find_acb_files(self, directories):
+    def find_acb_files(self, directories: List[str]) -> List[str]:
         ret = []
         for directory in directories:
             for root, dirs, files in os.walk(directory):
@@ -108,7 +108,7 @@ class AcbDecrypter(object):
                 ret.extend(self.find_acb_files(dirs))
         return ret
 
-    def command(self, attr):
+    def command(self, attr: List[str]) -> bool:
         try:
             check_call(attr, shell=True, stdout=DEVNULL, stderr=STDOUT)
             return True
