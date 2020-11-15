@@ -1,4 +1,4 @@
-# acbDecrypter ver.0.2.0
+# acbDecrypter
 
 このツールはacbファイルをwav変換するツールです。
 
