@@ -60,7 +60,7 @@ class DecryptMaster(object):
     def get_path(self) -> str:
         if getattr(sys, 'frozen', False):
             # frozen
-            return os.path.dirname(sys.executable) + "\\..\\"
+            return os.path.dirname(sys.executable)
         else:
             # unfrozen
             return os.path.dirname(os.path.realpath(__file__)) + "\\..\\"
