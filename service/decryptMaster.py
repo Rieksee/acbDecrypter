@@ -6,6 +6,8 @@ from window.window_main import window_main
 from math import ceil
 from PyQt5.QtWidgets import QApplication
 from typing import List, Optional, Dict, Tuple
+from src.component.fileAnalyzeComponent import FileAnalyzeComponent
+from src.component.outputFilenameComponent import OutputFilenameComponent
 
 class DecryptMaster(object):
     """docstring for DecryptMaster"""
@@ -66,24 +68,7 @@ class DecryptMaster(object):
             return os.path.dirname(os.path.realpath(__file__)) + "\\..\\"
 
     def findStr(self, file: str, searchStr: str, offset: int, back: int, count: int) -> Optional[int]:
-        filesize = os.path.getsize(file)
-        readLen = 40
-        dataoffset: Optional[int] = None
-        with open(file, 'rb') as f:
-            while True:
-                f.seek(offset)
-                data = f.read(readLen)
-                findAt = data.find(searchStr.encode('utf-8'))
-                if findAt != -1:
-                    dataoffset = findAt + offset
-                    count = count - 1
-                    if count <= 0:
-                        break
-                if offset + readLen > filesize:
-                    dataoffset = None
-                    break
-                offset = offset + readLen + back
-            return dataoffset
+        return FileAnalyzeComponent.findStr(file=file, searchStr=searchStr, offset=offset, back=back, count=count)
 
     def get_progress(self) -> int:
         return self.progress
@@ -94,104 +79,19 @@ class DecryptMaster(object):
             self.progressBar.setval(1, level)
 
     def get_filename(self, filename: str) -> Dict[int, str]:
-        offset1 = self.findStr(filename, '@UTF', 0, -4, 3)
-        if offset1 is None:
-            return dict()
-        offset2 = self.findStr(filename, 'CueName\x00CueName\x00CueIndex\x00', offset1, -len('CueName\x00CueName\x00CueIndex\x00'), 1)
-        if offset2 is None:
-            return dict()
-        offset = offset2 + len('CueName\x00CueName\x00CueIndex\x00')
-        end = self.findStr(filename, '\x00\x00', offset, -4, 1)
-        if end is None:
-            return dict()
-        with open(filename, 'rb') as f:
-            f.seek(offset)
-            stri = f.read(end - offset)
-            names = stri.split('\x00'.encode('ascii'))
-        indexList = self.get_filename_index(filename, offset1, offset2)
-        print("名前の数" + str(len(names)))
-        print("indexの数" + str(len(indexList)))
-        ret = {}
-        count = 0
-        for name in names:
-            try:
-                index = indexList[count]
-            except Exception as e:
-                index = 'unknown index:' + str(count)
-            ret[index] = name.decode('utf-8')
-            count = count + 1
-        return ret
+        return OutputFilenameComponent.get_filename(filename=filename)
 
     def findByte(self, file: str, searchByte: bytes, offset: int, back: int, count: int) -> Optional[int]:
-        filesize = os.path.getsize(file)
-        readLen = 40
-        search = None
-        searchArray = bytearray(searchByte)
-        with open(file, 'rb') as f:
-            while True:
-                f.seek(offset)
-                data = f.read(readLen)
-                matchCount = 0
-                data = bytearray(data)
-                dataCount = 0
-                for bt in data:
-                    if bt == searchArray[matchCount]:
-                        # 一致したとき
-                        if matchCount == 0:
-                            findAt = dataCount
-                        matchCount = matchCount + 1
-                    else:
-                        # 一致しない時
-                        matchCount = 0
-                    dataCount = dataCount + 1
-                    if matchCount >= len(searchArray):
-                        break
-                else:
-                    # 一致しないままreadしたdataを読み終わったとき
-                    if offset + readLen > filesize:
-                        # ファイルの最後まで読んでいるとき
-                        dataoffset = None
-                        break
-                    offset = offset + readLen + back
-                    continue
-                dataoffset = findAt + offset
-                count = count - 1
-                if count <= 0:
-                    break
-            return dataoffset
+        return FileAnalyzeComponent.findByte(file=file, searchByte=searchByte, offset=offset, back=back, count=count)
 
     def can_get_wav_file_name(self, nameLists: Tuple[List[str], Dict[int, str]]) -> bool:
-        wavFileNames = nameLists[0]
-        filenames = nameLists[1]
-        if len(wavFileNames) > len(filenames):
-            return False
-        else:
-            return True
+        return OutputFilenameComponent.can_get_wav_file_name(nameLists=nameLists)
 
     def get_wav_file_names(self, path: str, fileList: List[str]) -> Tuple[List[str], Dict[int, str]]:
-        # 連番の名前
-        wavFileNames = [os.path.splitext(file)[0] + '.wav' for file in fileList]
-
-        # acbファイルに格納されている元の名前
-        filenames = self.get_filename(path)
-
-        # 調査したのがawbファイルで元ファイル名が見つからない場合acbファイルも調査する
-        if len(filenames) == 0 and self.awb_file(path) != 0:
-            if self.awb_file(path) == 1:
-                filenames = self.get_filename(os.path.splitext(path)[0] + ".acb")
-            elif self.awb_file(path) == 2:
-                acbpath = path[:len(path) - len('awb.txt')] + 'acb.txt'
-                filenames = self.get_filename(acbpath)
-
-        return (wavFileNames, filenames)
+        return OutputFilenameComponent.get_wav_file_names(path=path, fileList=fileList)
 
     def awb_file(self, path: str) -> int:
-        if os.path.splitext(os.path.basename(path))[1].lower() == ".awb":
-            return 1
-        elif os.path.basename(path).lower().endswith("awb.txt"):
-            return 2
-        else:
-            return 0
+        return OutputFilenameComponent.awb_file(path=path)
 
     def rename_wav_file(self, path: str, files_file: List[str]) -> List[str]:
         filenames = self.get_wav_file_names(path, files_file)
@@ -236,30 +136,4 @@ class DecryptMaster(object):
         return key
 
     def get_filename_index(self, filename: str, offset: int, end: int) -> List[int]:
-        offset2 = self.findStr(filename, '\x00\x08\x52\x00\x00\x00\x10', offset, -7, 1)
-        if offset2 is None:
-            return []
-        offset2 = offset2 + len('\x00\x08\x52\x00\x00\x00\x10')
-        with open(filename, 'rb') as f:
-            f.seek(offset2)
-            stri = f.read(end - offset2)
-            names = stri.split('\x00\x00'.encode('ascii'))
-        lineCount = 0
-        result = []
-        for data in names:
-            if lineCount == 0:
-                lineCount = lineCount + 1
-                continue
-            dataList = list(data)
-            if len(dataList) == 0:
-                try:
-                   lineCount = lineCount + 1
-                   continue
-                except:
-                   pass
-            if len(dataList) < 4:
-                result.append(0)
-            else:
-                result.append(dataList[3])
-            lineCount = lineCount + 1
-        return result
+        return FileAnalyzeComponent.get_filename_index(filename=filename, offset=offset, end=end)
