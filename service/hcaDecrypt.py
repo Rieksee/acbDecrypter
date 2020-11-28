@@ -10,8 +10,8 @@ from typing import List
 
 class hca_decrypt(DecryptMaster):
     """docstring for hca_decrypt"""
-    def __init__(self, progressBar=None):
-        super(hca_decrypt, self).__init__(progressBar)
+    def __init__(self):
+        super(hca_decrypt, self).__init__()
         self.window_selectKey = window_main
         self.keyFile = self.hcaKeyFile
 

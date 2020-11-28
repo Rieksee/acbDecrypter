@@ -10,15 +10,17 @@ from PyQt5 import QtCore
 from service.hcaDecrypt import hca_decrypt
 from service.adxDecrypt import adx_decrypt
 from typing import List, Optional, Union
+from src.holder.EnvironmentHolder import EnvironmentHolder
+from src.holder.ProgressWindowHolder import ProgressWindowHolder
+from src.enum.ProgressBar import ProgressBar
 
 class Decrypt(QtCore.QThread):
     """docstring for Decrypt"""
-    def __init__(self, app: QApplication, progress, pathList: List[str], folderPath: Optional[str]=None):
+    def __init__(self, app: QApplication, pathList: List[str], folderPath: Optional[str]=None):
         super(Decrypt, self).__init__()
         self.app = app
-        self.window_progress = progress
-        self.hcaDecrypt = hca_decrypt(self.window_progress)
-        self.adxDecrypt = adx_decrypt(self.window_progress)
+        self.hcaDecrypt = hca_decrypt()
+        self.adxDecrypt = adx_decrypt()
         self.thisFileDir = self.get_path()
 
         self.adxKey = None
@@ -47,10 +49,10 @@ class Decrypt(QtCore.QThread):
                 else:
                     self.decrypt(path)
             count = count + 1
-            self.window_progress.setval(0, ceil(count / self.filesAllcount * 100))
+            self.setProgress(ProgressBar.ALL, ceil(count / self.filesAllcount * 100))
             print(str(count) + '/' + str(self.filesAllcount) + 'ファイル完了')
             print('-' * 20)
-        self.window_progress.finish()
+        ProgressWindowHolder().getWindow().finish()
         print("エラー数:" + str(len(self.errorFiles)))
         print(self.errorFiles)
         print('全て完了しました。')
@@ -59,7 +61,6 @@ class Decrypt(QtCore.QThread):
         self.finished.emit()
 
     def decrypt(self, path: str, savePath: str='', saveFileNamePrefix: str=''):
-        # self.window_progress.setval(1, 0)
         if savePath == '':
             resultDir = os.path.splitext(path)[0]
         else:
@@ -78,17 +79,13 @@ class Decrypt(QtCore.QThread):
             self.move_wav_file(newFileNames, resultDir, saveFileNamePrefix)
             self.command(['rd', '/s', '/q', self.hcaDecrypt.get_tmp_dir()])
 
-        self.window_progress.setval(1, 100)
+        print(ProgressWindowHolder().getWindow())
+        ProgressWindowHolder().setProgress(ProgressBar.CURRENT, 100)
         if self.folderPath == "":
             os.system('explorer ' + resultDir)
 
     def get_path(self) -> str:
-        if getattr(sys, 'frozen', False):
-            # frozen
-            return os.path.dirname(sys.executable)
-        else:
-            # unfrozen
-            return os.path.dirname(os.path.realpath(__file__))
+        return EnvironmentHolder().projectDirectory
 
     def chk_file_type(self, file: str) -> int:
         # types:
@@ -163,8 +160,8 @@ class Decrypt(QtCore.QThread):
             self.setProgress(progress)
             time.sleep(0.5)
 
-    def setProgress(self, level: int, bar: int=1):
-        self.window_progress.setval(bar, level)
+    def setProgress(self, level: int, bar: ProgressBar=ProgressBar.CURRENT):
+        ProgressWindowHolder().setProgress(bar, level)
 
     def rename(self, name: str) -> str:
         count = 1

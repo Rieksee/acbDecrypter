@@ -6,6 +6,9 @@ from PyQt5.QtWidgets import QApplication
 from window.window_progress import window_progress
 from service.dec import Decrypt
 from typing import List
+from src.holder.ProgressWindowHolder import ProgressWindowHolder
+from src.holder.EnvironmentHolder import EnvironmentHolder
+from src.holder.KeyHolder import keyHolder
 
 class AcbDecrypter(object):
     """
@@ -13,16 +16,20 @@ class AcbDecrypter(object):
     """
     def main(self, path: List[str], folder: bool) -> None:
         app = QApplication([sys.argv[0]])
-        self.window_progress = window_progress()
+        progress_window_holder = ProgressWindowHolder()
+        progress_window_holder.setWindow(window_progress())
+        print(progress_window_holder.getWindow())
+        EnvironmentHolder()
+        keyHolder()
         if folder:
-            self.folder = self.window_progress.select_dir_path()
+            self.folder = progress_window_holder.getWindow().select_dir_path()
             if self.folder == "":
                 sys.exit()
             self.path = self.find_acb_files([self.folder])
         else:
             self.folder = None
             if len(path) == 0:
-                self.path = self.window_progress.select_file_path()
+                self.path = progress_window_holder.getWindow().select_file_path()
             else:
                 self.path = path
         if len(self.path) == 0:
@@ -35,8 +42,8 @@ class AcbDecrypter(object):
         if not self.isEncrypted():
             self.key = self.key_default
             sys.exit()
-        self.window_progress.show()
-        self.decrypt = Decrypt(app, self.window_progress, self.path, self.folder)
+        progress_window_holder.getWindow().show()
+        self.decrypt = Decrypt(app, self.path, self.folder)
         sys.exit()
         # sys.exit(app.exec_())
 

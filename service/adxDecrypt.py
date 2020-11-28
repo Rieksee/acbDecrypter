@@ -11,8 +11,8 @@ from typing import List, Union, Tuple, Dict
 
 class adx_decrypt(DecryptMaster):
     """docstring for adx_decrypt"""
-    def __init__(self, progressBar=None):
-        super(adx_decrypt, self).__init__(progressBar)
+    def __init__(self):
+        super(adx_decrypt, self).__init__()
         self.tmpPath = ""
         self.keyFile = self.adxSpecialKeyList
         self.window_selectKey = window_adxKeySelect

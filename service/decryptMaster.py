@@ -3,23 +3,26 @@ import os
 import sys
 from subprocess import DEVNULL, STDOUT, check_call
 from window.window_main import window_main
+from window.window_progress import window_progress
 from math import ceil
 from PyQt5.QtWidgets import QApplication
 from typing import List, Optional, Dict, Tuple
-from src.component.fileAnalyzeComponent import FileAnalyzeComponent
-from src.component.outputFilenameComponent import OutputFilenameComponent
+from src.component.FileAnalyzeComponent import FileAnalyzeComponent
+from src.component.OutputFilenameComponent import OutputFilenameComponent
+from src.component.CommandExecuterComponent import CommandExecuterComponent
+from src.service.OutputFilenameService import OutputFilenameService
+from src.holder.ProgressWindowHolder import ProgressWindowHolder
+from src.enum.ProgressBar import ProgressBar
 
 class DecryptMaster(object):
     """docstring for DecryptMaster"""
-    def __init__(self, progressBar=None):
+    def __init__(self):
         super(DecryptMaster, self).__init__()
-        if progressBar is not None:
-            self.progressBar = progressBar
         self.key: Optional[str] = None
         self.progress = 0
         self.tmpDir = ""
         self.projectDir = self.get_path()
-        self.errorFiles = []
+        self.errorFiles: List[str] = []
         self.window_selectKey = window_main
         self.adxDecryptDir = self.projectDir + '\\adxToWav'
         self.adxSpecialDecryptPath = self.adxDecryptDir + '\\特殊鍵指定デコード.bat'
@@ -44,8 +47,7 @@ class DecryptMaster(object):
 
     def command(self, attr: List[str]) -> bool:
         try:
-            check_call(attr, shell=True, stdout=DEVNULL, stderr=STDOUT)
-            return True
+            return CommandExecuterComponent.command(attr)
         except Exception as e:
             self.error(e)
             return False
@@ -71,15 +73,13 @@ class DecryptMaster(object):
         return FileAnalyzeComponent.findStr(file=file, searchStr=searchStr, offset=offset, back=back, count=count)
 
     def get_progress(self) -> int:
-        return self.progress
+        return ProgressWindowHolder().getProgress(ProgressBar.CURRENT)
 
     def set_progress(self, level: int):
-        self.progress = level
-        if self.progressBar is not None:
-            self.progressBar.setval(1, level)
+        ProgressWindowHolder().setProgress(ProgressBar.CURRENT, level)
 
     def get_filename(self, filename: str) -> Dict[int, str]:
-        return OutputFilenameComponent.get_filename(filename=filename)
+        return OutputFilenameService.get_filename(filename=filename)
 
     def findByte(self, file: str, searchByte: bytes, offset: int, back: int, count: int) -> Optional[int]:
         return FileAnalyzeComponent.findByte(file=file, searchByte=searchByte, offset=offset, back=back, count=count)
@@ -88,7 +88,7 @@ class DecryptMaster(object):
         return OutputFilenameComponent.can_get_wav_file_name(nameLists=nameLists)
 
     def get_wav_file_names(self, path: str, fileList: List[str]) -> Tuple[List[str], Dict[int, str]]:
-        return OutputFilenameComponent.get_wav_file_names(path=path, fileList=fileList)
+        return OutputFilenameService.get_wav_file_names(path=path, fileList=fileList)
 
     def awb_file(self, path: str) -> int:
         return OutputFilenameComponent.awb_file(path=path)

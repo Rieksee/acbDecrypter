@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
+import time
 from ui.ui_progress import Ui_Progress
-from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QProgressBar
+from typing import Optional, List
+from src.enum.ProgressBar import ProgressBar
 
 class window_progress(QWidget):
     def __init__(self, parent=None, isolate=True):
@@ -15,29 +18,44 @@ class window_progress(QWidget):
     def cancel(self):
         sys.exit()
 
-    def setval(self, barNo: int, val: int):
+    def setval(self, barId: ProgressBar, val: int) -> bool:
         if type(val) != int:
             return False
-        if barNo == 0:
-            self.ui.progress_all.setValue(val)
-        elif barNo == 1:
-            self.ui.progress_now.setValue(val)
-        else:
+        bar = self.getBar(barId)
+        if bar is None:
             return False
+        print("setvalue")
+        print(bar)
+        print(val)
         QApplication.processEvents()
+        time.sleep(0.5)
         return True
+
+    def getVal(self, barId: ProgressBar) -> Optional[int]:
+        bar = self.getBar(barId)
+        if bar is None:
+            return None
+        return bar.value()
 
     def finish(self):
         QApplication.quit()
 
-    def select_file_path(self):
+    def select_file_path(self) -> List[str]:
         path = QFileDialog.getOpenFileNames(self, "ファイルを選択", None, "ACB,AWBファイル(*.acb *acb.txt *.awb *awb.txt);;すべてのファイル(*.*)")[0]
-        retval = []
+        retval: List[str] = []
         for file in path:
             retval.append(file.replace("/", "\\"))
         return retval
 
-    def select_dir_path(self):
+    def select_dir_path(self) -> str:
         path = QFileDialog.getExistingDirectory(self, "フォルダを選択")
         path = path.replace("/", "\\")
         return path
+
+    def getBar(self, barId: ProgressBar) -> Optional[QProgressBar]:
+        if barId == ProgressBar.ALL:
+            return self.ui.progress_all
+        elif barId == ProgressBar.CURRENT:
+            return self.ui.progress_now
+        else:
+            return None
