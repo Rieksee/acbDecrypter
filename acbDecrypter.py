@@ -17,7 +17,6 @@ class AcbDecrypter(object):
     def main(self, path: List[str], folder: bool) -> None:
         app = QApplication([sys.argv[0]])
         ProgressWindowHolder().setWindow(window_progress())
-        print(ProgressWindowHolder().getWindow())
         EnvironmentHolder()
         keyHolder()
         if folder:
@@ -47,12 +46,7 @@ class AcbDecrypter(object):
         # sys.exit(app.exec_())
 
     def get_path(self) -> str:
-        if getattr(sys, 'frozen', False):
-            # frozen
-            return os.path.dirname(sys.executable)
-        else:
-            # unfrozen
-            return os.path.dirname(os.path.realpath(__file__))
+        return EnvironmentHolder().projectDirectory
 
     def isEncrypted(self) -> bool:
         offset = None

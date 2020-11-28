@@ -10,6 +10,7 @@ from typing import List, Optional, Dict, Tuple
 from src.component.FileAnalyzeComponent import FileAnalyzeComponent
 from src.component.OutputFilenameComponent import OutputFilenameComponent
 from src.component.CommandExecuterComponent import CommandExecuterComponent
+from src.holder.EnvironmentHolder import EnvironmentHolder
 from src.service.OutputFilenameService import OutputFilenameService
 from src.holder.ProgressWindowHolder import ProgressWindowHolder
 from src.enum.ProgressBar import ProgressBar
@@ -62,12 +63,7 @@ class DecryptMaster(object):
         return self.errorFiles
 
     def get_path(self) -> str:
-        if getattr(sys, 'frozen', False):
-            # frozen
-            return os.path.dirname(sys.executable)
-        else:
-            # unfrozen
-            return os.path.dirname(os.path.realpath(__file__)) + "\\..\\"
+        return EnvironmentHolder().projectDirectory
 
     def findStr(self, file: str, searchStr: str, offset: int, back: int, count: int) -> Optional[int]:
         return FileAnalyzeComponent.findStr(file=file, searchStr=searchStr, offset=offset, back=back, count=count)

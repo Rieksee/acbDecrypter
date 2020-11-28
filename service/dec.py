@@ -79,7 +79,6 @@ class Decrypt(QtCore.QThread):
             self.move_wav_file(newFileNames, resultDir, saveFileNamePrefix)
             self.command(['rd', '/s', '/q', self.hcaDecrypt.get_tmp_dir()])
 
-        print(ProgressWindowHolder().getWindow())
         ProgressWindowHolder().setProgress(ProgressBar.CURRENT, 100)
         if self.folderPath == "":
             os.system('explorer ' + resultDir)
