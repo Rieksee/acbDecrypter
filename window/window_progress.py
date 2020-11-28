@@ -24,11 +24,8 @@ class window_progress(QWidget):
         bar = self.getBar(barId)
         if bar is None:
             return False
-        print("setvalue")
-        print(bar)
-        print(val)
+        bar.setValue(val)
         QApplication.processEvents()
-        time.sleep(0.5)
         return True
 
     def getVal(self, barId: ProgressBar) -> Optional[int]:
