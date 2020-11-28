@@ -16,20 +16,19 @@ class AcbDecrypter(object):
     """
     def main(self, path: List[str], folder: bool) -> None:
         app = QApplication([sys.argv[0]])
-        progress_window_holder = ProgressWindowHolder()
-        progress_window_holder.setWindow(window_progress())
-        print(progress_window_holder.getWindow())
+        ProgressWindowHolder().setWindow(window_progress())
+        print(ProgressWindowHolder().getWindow())
         EnvironmentHolder()
         keyHolder()
         if folder:
-            self.folder = progress_window_holder.getWindow().select_dir_path()
+            self.folder = ProgressWindowHolder().getWindow().select_dir_path()
             if self.folder == "":
                 sys.exit()
             self.path = self.find_acb_files([self.folder])
         else:
             self.folder = None
             if len(path) == 0:
-                self.path = progress_window_holder.getWindow().select_file_path()
+                self.path = ProgressWindowHolder().getWindow().select_file_path()
             else:
                 self.path = path
         if len(self.path) == 0:
@@ -42,7 +41,7 @@ class AcbDecrypter(object):
         if not self.isEncrypted():
             self.key = self.key_default
             sys.exit()
-        progress_window_holder.getWindow().show()
+        ProgressWindowHolder().getWindow().show()
         self.decrypt = Decrypt(app, self.path, self.folder)
         sys.exit()
         # sys.exit(app.exec_())
